@@ -15,9 +15,5 @@
         "grunt-jasmine-node-new": "~0.3.2",
         "grunt-contrib-uglify": "~0.5.1"
     },
-    "main": "dist/jquery.class.js",
-    "scripts": [
-        "dist/jquery.class.js",
-        "dist/jquery.class.min.js"
-    ]
+    "main": "./src/jquery.class.js"
 }
