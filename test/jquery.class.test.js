@@ -1,14 +1,8 @@
 'use strict';
 
-var jsdom   = require('jsdom'),
-    window  = jsdom.jsdom().parentWindow,
-    jQuery  = require('jquery')( window );
+var Class = require( __dirname + '/../src/jquery.class.js');
 
-global.window   = window;
-
-require( __dirname + '/../src/jquery.class.js')( jQuery );
-
-var Animal = jQuery.Class.extend(
+var Animal = Class.extend(
     {
         count: 0,
         test: function () {
@@ -58,16 +52,16 @@ var Ajax = Dog.extend(
 
 describe('Inheritance', function() {
 
-    var Base    = jQuery.Class({}),
+    var Base    = Class({}),
         Inherit = Base.extend({}),
         instance = new Inherit();
 
     it( 'tree check', function(){
 
-        expect( new Base() instanceof jQuery.Class ).toBe(true);
+        expect( new Base() instanceof Class ).toBe(true);
         expect( instance instanceof Inherit ).toBe(true);
         expect( instance instanceof Base ).toBe(true);
-        expect( instance instanceof jQuery.Class ).toBe(true);
+        expect( instance instanceof Class ).toBe(true);
     });
 });
 
@@ -107,7 +101,7 @@ describe('Creating instance', function(){
 
     it( 'Creating without extend check', function () {
 
-        var Bar = jQuery.Class({
+        var Bar = Class({
                 ok: function () {}
             }),
             Foo = Bar({
@@ -130,13 +124,13 @@ describe('Creating instance', function(){
 
 describe('Namespaces', function () {
 
-    var fb = jQuery.Class.extend('Foo.Bar');
-    jQuery.Class.extend('Todo', {}, {});
+    var fb = Class.extend('Foo.Bar');
+    Class.extend('Todo', {}, {});
 
     it( 'Internal static properties check', function(){
 
         // does not work at node properly
-        expect( window.Foo.Bar === fb ).toBe( true );
+        expect( global.Foo.Bar === fb ).toBe( true );
 
         expect( fb.shortName ).toEqual( 'Bar' );
         expect( fb.fullName ).toEqual( 'Foo.Bar' );
@@ -168,7 +162,7 @@ describe( 'Setups', function(){
                 }
             };
 
-    var Car = jQuery.Class.extend( staticProps, protoProps );
+    var Car = Class.extend( staticProps, protoProps );
 
     new Car('geo');
 
@@ -176,7 +170,7 @@ describe( 'Setups', function(){
 
         expect( staticSetup ).toEqual( 1 );
         expect( staticInit ).toEqual( 2 );
-        expect( jQuery.makeArray( staticInitArgs ) ).toEqual( ['something'] );
+        expect( Array.prototype.slice.call( staticInitArgs ) ).toEqual( ['something'] );
     });
 
     it( 'Prototype tests', function(){
@@ -196,7 +190,7 @@ describe( 'Setups', function(){
             },
             o2 = {};
 
-        jQuery.Class.extend(o1,o2);
+        Class.extend(o1,o2);
     });
 });
 
@@ -205,7 +199,7 @@ describe( 'Proxy method', function(){
     it( 'Static proxy test', function(){
 
         var curVal  = 0,
-            Foo     = jQuery.Class.extend(
+            Foo     = Class.extend(
                 {
                     show: function (value) {
 
@@ -230,7 +224,7 @@ describe( 'Proxy method', function(){
 
     it( 'Should throw exception if method is not defined', function(){
 
-        var Foo = jQuery.Class.extend({
+        var Foo = Class.extend({
                 testThrow: function(){
 
                     this.proxy('notExist');
@@ -255,7 +249,7 @@ describe( 'Super method ( call parent methods )', function(){
 
     it('Prototype super', function(){
 
-        var A = jQuery.Class.extend({
+        var A = Class.extend({
                 init: function (arg) {
                     this.arg = arg + 1;
                 },
@@ -279,7 +273,7 @@ describe( 'Super method ( call parent methods )', function(){
 
     it('Static super', function(){
 
-        var First = jQuery.Class.extend({
+        var First = Class.extend({
                 raise: function (num) {
                     return num;
                 }
@@ -296,7 +290,7 @@ describe( 'Super method ( call parent methods )', function(){
     //@TODO check this out
 //    it('When parent method does not exist', function(){
 //
-//        var Foo = jQuery.Class.extend({}),
+//        var Foo = Class.extend({}),
 //            Bar = Foo.extend({
 //
 //                test: function(){

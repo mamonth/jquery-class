@@ -14,15 +14,15 @@
 (function( factory ) {
     if (typeof define === 'function' && define.amd) {
         // AMD
-        define(['jquery'], factory);
+        define( factory );
     } else if (typeof exports === 'object') {
         // CommonJS
-        module.exports = factory;
+        module.exports = factory();
     } else {
         // Browser globals
-        factory( jQuery );
+        factory();
     }
-}( function ($) {
+}( function () {
 
     'use strict';
 
@@ -62,7 +62,7 @@
                 current, r = 0,
                 i, container, rootsLength;
             // Make sure roots is an `array`.
-            roots = $.isArray(roots) ? roots : [roots || window];
+            roots = Array.isArray( roots ) ? roots : [ roots || _globalObj ];
             rootsLength = roots.length;
             if (!length) {
                 return roots[0];
@@ -108,6 +108,64 @@
             }
         },
         /**
+         * Mimic jQuery.extend to get rid off jQuery dependancy
+         *
+         * @returns {object}
+         */
+        extend = function(){
+
+            var src, copy, clone, options,
+                i       = 1,
+                deep    = false,
+                target  = arguments[0] || {};
+
+            // Handle a deep copy situation
+            if ( typeof target === 'boolean' ) {
+                deep = target;
+
+                // Skip the boolean and the target
+                target = arguments[ i ] || {};
+                i++;
+            }
+
+            for( ; i < arguments.length; i++ ){
+
+                options = arguments[i];
+
+                if( undefined === options || null === options ) continue;
+
+                for(var name in options ){
+
+                    src     = target[ name ];
+                    copy    = options[ name ];
+
+                    // Prevent never-ending loop
+                    if( target === copy ) continue;
+
+                    if( deep && copy && typeof copy === 'object' ){
+
+                        clone = src && typeof src === 'object' ? src : {};
+
+                        target[ name ] = extend( deep, clone, copy );
+
+                    } else if ( copy !== undefined ){
+
+                        target[ name ] = copy;
+                    }
+                }
+            }
+
+            return arguments[0];
+        },
+        /**
+         * Handle node execution
+         *
+         * @type {object}
+         * @private
+         */
+        _globalObj = global || window,
+
+        /**
          * A private flag used to initialize a new class instance without
          * initializing it's bindings.
          *
@@ -120,15 +178,15 @@
      * @class jQuery.Class
      * @constructor
      */
-    $.Class = function(){
+    var Class = function(){
 
-        if( arguments.length ) return $.Class.extend.apply( $.Class, arguments );
+        if( arguments.length ) return Class.extend.apply( Class, arguments );
     };
 
     /**
      * @static
      */
-    $.extend( $.Class, {
+    extend( Class, {
         /**
          * @var {Boolean} if false - new instance of constructor, true - constructor extends
          * @memberOf jQuery.Class
@@ -201,7 +259,7 @@
             addTo = addTo || newProps;
 
             for (var property in newProps) {
-                $.Class._overwrite(addTo, oldProps, property, newProps[ property ]);
+                Class._overwrite(addTo, oldProps, property, newProps[ property ]);
             }
         },
 
@@ -221,7 +279,9 @@
 
             // _super method implementation
             // overwrites a single property so it can still call super
-            target[ property ] = $.isFunction( val ) && $.isFunction( parent[ property ] ) && fnTest.test(val) ? function( name, fn ){
+            var hasSuper = typeof val === 'function' && typeof parent[ property ] == 'function' && fnTest.test( val );
+
+            target[ property ] = hasSuper ? function( name, fn ){
 
                 return function () {
                     var tmp = this._super,
@@ -319,7 +379,7 @@
          */
         setup: function (base, fullName, staticProps, protoProps ) {
 
-            this.defaults = $.extend(true, {}, base.defaults, this.defaults);
+            this.defaults = extend(true, {}, base.defaults, this.defaults);
         },
 
         /**
@@ -430,7 +490,7 @@
             prototype = this.instance();
 
             // Copy the properties over onto the new prototype.
-            $.Class._inherit(proto, _super, prototype);
+            Class._inherit(proto, _super, prototype);
 
             // The dummy class constructor.
             function Constructor() {
@@ -454,14 +514,14 @@
             }
 
             // Copy new static properties on class.
-            $.Class._inherit(klass, _super_class, Constructor);
+            Class._inherit(klass, _super_class, Constructor);
 
             // Setup namespaces.
             if (fullName) {
 
                 parts       = fullName.split('.');
                 shortName   = parts.pop();
-                current     = getObjectFromString( parts.join('.'), window, true );
+                current     = getObjectFromString( parts.join('.'), _globalObj, true );
                 namespace   = current;
                 _fullName   = underscore(fullName.replace(/\./g, "_"));
                 _shortName  = underscore(shortName);
@@ -475,7 +535,7 @@
             }
 
             // Set things that shouldn't be overwritten.
-            Constructor = $.extend(Constructor, {
+            Constructor = extend( Constructor, {
                 constructor: Constructor,
                 prototype: prototype,
 
@@ -537,7 +597,7 @@
             Constructor.prototype.constructor = Constructor;
 
             // Call the class `setup` and `init`
-            var t = [_super_class].concat( $.makeArray(arguments)),
+            var t = [_super_class].concat( Array.prototype.slice.call(arguments, 0) ),
                 args = Constructor.setup.apply(Constructor, t);
 
             if (Constructor.init) {
@@ -641,7 +701,7 @@
 	 *     });
      *
      */
-    $.Class.prototype.setup = function () {};
+    Class.prototype.setup = function () {};
 
     /**
      * Called when a new instance of a can.Construct is created.
@@ -697,7 +757,7 @@
      * brian.bio(); // "Hi! I'm Brian Moschel and I write ECMAScript.";
      *
      */
-    $.Class.prototype.init = function () {};
+    Class.prototype.init = function () {};
 
 
     /**
@@ -712,17 +772,17 @@
      *
      * @return {function} Proxied function
      */
-    $.Class.proxy = $.Class.prototype.proxy = function( funcs ){
+    Class.proxy = Class.prototype.proxy = function( funcs ){
 
         //args that should be curried
-        var args = $.makeArray(arguments),
+        var args = Array.prototype.slice.call(arguments, 0),
             self;
 
         // get the functions to callback
         funcs = args.shift();
 
         // if there is only one function, make funcs into an array
-        if (!$.isArray(funcs)) {
+        if ( !Array.isArray(funcs) ) {
             funcs = [funcs];
         }
         // keep a reference to us in self
@@ -731,14 +791,14 @@
         //Throw an exception in case methods are not exist in classes
         for (var i = 0; i < funcs.length; i++) {
 
-            if (typeof funcs[i] === "string" && !$.isFunction(this[funcs[i]])) {
-                throw ( (this.fullName || this.Class.fullName) + " does not have a " + funcs[i] + "method!");
+            if (typeof funcs[i] === "string" && typeof this[ funcs[i] ] !== 'function' ) {
+                throw ( (this.fullName || this.Class.fullName) + ' does not have a ' + funcs[i] + ' method!');
             }
         }
 
         return function class_cb() {
             // add the arguments after the curried args
-            var cur     = args.concat( $.makeArray(arguments) ),
+            var cur     = args.concat( Array.prototype.slice.call(arguments, 0) ),
                 length  = funcs.length,
                 f       = 0,
                 func, isString;
@@ -767,6 +827,12 @@
 
     };
 
-    return $.Class;
+    // If global window object && jquery is exist - assign
+    if( typeof window !== 'undefined' && undefined !== window.jQuery ){
+
+        window.jQuery.Class = Class;
+    }
+
+    return Class;
 
 }));
