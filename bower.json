@@ -6,7 +6,7 @@
   "main": [
       "src/jquery.class.js",
       "dist/jquery.class.min.js",
-      "dist/jquery.class.min.map"
+      "dist/jquery.class.min.js.map"
   ],
   "moduleType": [
     "amd",

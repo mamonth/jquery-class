@@ -163,7 +163,7 @@
          * @type {object}
          * @private
          */
-        _globalObj = global || window,
+        _globalObj = ( typeof window !== 'undefined' ) ? window : global,
 
         /**
          * A private flag used to initialize a new class instance without
