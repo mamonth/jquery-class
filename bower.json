@@ -1,0 +1,27 @@
+{
+  "name": "jQuery.Class",
+  "version": "0.1.0",
+  "homepage": "https://github.com/mamonth/jquery-class",
+  "description": "Js inheritance realization based on JavaScriptMVC",
+  "main": [
+      "src/jquery.class.js",
+      "dist/jquery.class.min.js",
+      "dist/jquery.class.min.map"
+  ],
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "authors": [
+    "Andrew Tereshko <andrew.tereshko@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
